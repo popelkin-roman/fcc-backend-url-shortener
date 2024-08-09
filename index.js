@@ -29,13 +29,14 @@ app.use(
 
 app.post('/api/shorturl', function(req,res) {
   let fullUrl = req.body.url;
+  if (fullUrl[fullUrl.length -1] == "/") fullUrl = fullUrl.substr(0, fullUrl.length - 1);
   let urlWithoutProtocol = fullUrl.split('://')[1] || fullUrl;
   let host = urlWithoutProtocol.split('/')[0];
   dns.lookup(host, (err, address) => {
     if (err) {
       return res.json({ error: 'invalid url' })
     }
-    let shortUrl = shortUrls.findIndex((el) => el === fullUrl);
+    let shortUrl = shortUrls.findIndex((el) => el === urlWithoutProtocol);
     if (shortUrl < 0) {
       shortUrls.push(urlWithoutProtocol);
       shortUrl = shortUrls.length - 1;
