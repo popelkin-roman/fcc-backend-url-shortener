@@ -5,7 +5,7 @@ const dns = require('node:dns');
 const app = express();
 const bodyParser = require('body-parser');
 
-let shortUrls = ['www.ya.ru'];
+let shortUrls = [];
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
@@ -29,19 +29,19 @@ app.use(
 
 app.post('/api/shorturl', function(req,res) {
   let fullUrl = req.body.url;
-  let host = fullUrl.split('://')[1] || fullUrl.split('://')[0];
-  host = host.split('/')[0];
+  let urlWithoutProtocol = fullUrl.split('://')[1] || fullUrl;
+  let host = urlWithoutProtocol.split('/')[0];
   dns.lookup(host, (err, address) => {
     if (err) {
       return res.json({ error: 'invalid url' })
     }
     let shortUrl = shortUrls.findIndex((el) => el === fullUrl);
     if (shortUrl < 0) {
-      shortUrls.push(fullUrl);
+      shortUrls.push(urlWithoutProtocol);
       shortUrl = shortUrls.length - 1;
     }
     app.get(`/api/shorturl/${shortUrl}`, function(req, res) {
-      res.redirect(fullUrl);
+      res.redirect(`//${urlWithoutProtocol}`);
     })
     res.json({ original_url : fullUrl, short_url : shortUrl})
   });
